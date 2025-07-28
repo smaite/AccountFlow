@@ -20,6 +20,8 @@ export interface DocumentAnalysisResult {
 
 export async function analyzeDocumentImage(base64Image: string, mimeType: string): Promise<DocumentAnalysisResult> {
   try {
+    console.log(`Starting Gemini AI analysis for ${mimeType} image...`);
+    
     const systemPrompt = `You are an expert document processor. Extract financial information from receipts and invoices. 
 Analyze the document and provide the data in JSON format with these fields:
 - amount (number): The total amount from the document
@@ -29,8 +31,6 @@ Analyze the document and provide the data in JSON format with these fields:
 - date (string): Date in YYYY-MM-DD format
 
 Return only valid JSON with these exact field names.`;
-
-    const imageBytes = Buffer.from(base64Image, 'base64');
 
     const contents = [
       {
@@ -42,8 +42,10 @@ Return only valid JSON with these exact field names.`;
       systemPrompt,
     ];
 
+    console.log("Sending request to Gemini AI...");
+    
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: "application/json",
@@ -56,18 +58,18 @@ Return only valid JSON with these exact field names.`;
             description: { type: "string" },
             date: { type: "string" },
           },
-          required: ["amount", "vendor"],
+          required: [],
         },
       },
       contents: contents,
     });
 
     const rawJson = response.text;
-
     console.log(`Gemini AI Response: ${rawJson}`);
 
     if (rawJson) {
       const data: DocumentAnalysisResult = JSON.parse(rawJson);
+      console.log("Successfully parsed Gemini response:", data);
       return data;
     } else {
       throw new Error("Empty response from Gemini model");
