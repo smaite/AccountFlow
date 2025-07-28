@@ -13,7 +13,7 @@ export default function AiDocuments() {
   const [selectedDocument, setSelectedDocument] = useState<AiDocument | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: documents, isLoading } = useQuery({
+  const { data: documents = [], isLoading } = useQuery<AiDocument[]>({
     queryKey: ["/api/ai-documents"],
   });
 
