@@ -8,16 +8,20 @@ import {
   Truck, 
   Warehouse, 
   BarChart3,
-  User
+  User,
+  Image,
+  Tags
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "AI Documents", href: "/ai-documents", icon: Bot },
+  { name: "Image Analysis", href: "/image-analysis", icon: Image },
   { name: "Sales", href: "/sales", icon: ShoppingCart },
   { name: "Purchases", href: "/purchases", icon: Package },
   { name: "Products", href: "/products", icon: Box },
+  { name: "Categories", href: "/categories", icon: Tags },
   { name: "Suppliers", href: "/suppliers", icon: Truck },
   { name: "Inventory", href: "/inventory", icon: Warehouse },
   { name: "Reports", href: "/reports", icon: BarChart3 },

@@ -14,6 +14,8 @@ export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
   
   // Suppliers
   getSuppliers(): Promise<Supplier[]>;
@@ -39,7 +41,7 @@ export interface IStorage {
   // Purchases
   getPurchases(): Promise<Purchase[]>;
   getPurchase(id: string): Promise<PurchaseWithItems | undefined>;
-  createPurchase(purchase: InsertPurchase, items: InsertPurchaseItem[]): Promise<PurchaseWithItems>;
+  createPurchase(purchase: InsertPurchase, items: Omit<InsertPurchaseItem, 'purchaseId'>[]): Promise<PurchaseWithItems>;
   updatePurchaseStatus(id: string, status: string): Promise<Purchase>;
   
   // AI Documents
@@ -101,6 +103,19 @@ export class MemStorage implements IStorage {
     const newCategory: Category = { id, ...category };
     this.categories.set(id, newCategory);
     return newCategory;
+  }
+
+  async updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category> {
+    const existing = this.categories.get(id);
+    if (!existing) throw new Error("Category not found");
+    
+    const updated = { ...existing, ...category };
+    this.categories.set(id, updated);
+    return updated;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    this.categories.delete(id);
   }
 
   // Suppliers
@@ -268,7 +283,7 @@ export class MemStorage implements IStorage {
     return { ...purchase, supplier, items };
   }
 
-  async createPurchase(purchase: InsertPurchase, items: InsertPurchaseItem[]): Promise<PurchaseWithItems> {
+  async createPurchase(purchase: InsertPurchase, items: Omit<InsertPurchaseItem, 'purchaseId'>[]): Promise<PurchaseWithItems> {
     const id = randomUUID();
     const newPurchase: Purchase = { 
       id, 

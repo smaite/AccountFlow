@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Eye, CheckCircle, Clock, X, Package } from "lucide-react";
+import { Plus, Eye, CheckCircle, Clock, X, Package, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,6 +18,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import type { Purchase, Product, Supplier } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PurchaseImageUpload from "@/components/purchases/PurchaseImageUpload";
+import { formatCurrency } from "@/lib/utils";
 
 const purchaseFormSchema = insertPurchaseSchema.extend({
   items: z.array(z.object({
@@ -34,6 +37,7 @@ export default function Purchases() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [purchaseItems, setPurchaseItems] = useState([{ productId: "", quantity: 1, unitPrice: 0, totalPrice: 0 }]);
+  const [activeTab, setActiveTab] = useState<string>("form");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -150,13 +154,6 @@ export default function Purchases() {
     });
   };
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(parseFloat(amount));
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'received':
@@ -168,6 +165,11 @@ export default function Purchases() {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handlePurchaseImageUploadSuccess = () => {
+    setDialogOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['/api/purchases'] });
   };
 
   return (
@@ -183,16 +185,31 @@ export default function Purchases() {
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <div className="flex gap-2">
+                <Button onClick={() => { setActiveTab("image"); setDialogOpen(true); }}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Invoice
+                </Button>
+                <Button onClick={() => { setActiveTab("form"); setDialogOpen(true); }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Purchase
               </Button>
+              </div>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Purchase Order</DialogTitle>
+                <DialogTitle>
+                  {activeTab === "form" ? "Create New Purchase Order" : "Upload Purchase Invoice"}
+                </DialogTitle>
               </DialogHeader>
               
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="form">Manual Entry</TabsTrigger>
+                  <TabsTrigger value="image">Upload Invoice</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="form">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
@@ -383,6 +400,12 @@ export default function Purchases() {
                   </div>
                 </form>
               </Form>
+                </TabsContent>
+                
+                <TabsContent value="image">
+                  <PurchaseImageUpload onSuccess={handlePurchaseImageUploadSuccess} />
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>
@@ -453,10 +476,16 @@ export default function Purchases() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No purchases yet</h3>
                 <p className="text-gray-500 mb-6">Create your first purchase order to get started</p>
-                <Button onClick={() => setDialogOpen(true)}>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => { setActiveTab("image"); setDialogOpen(true); }}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Invoice
+                  </Button>
+                  <Button onClick={() => { setActiveTab("form"); setDialogOpen(true); }}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Create First Purchase
+                    Create Manually
                 </Button>
+                </div>
               </div>
             )}
           </CardContent>

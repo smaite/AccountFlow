@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CloudUpload, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, CheckCircle, Loader2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -73,7 +73,7 @@ export default function DocumentUpload() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <CloudUpload className="w-5 h-5 text-primary mr-2" />
+          <Upload className="w-5 h-5 text-primary mr-2" />
           AI Document Processing
         </CardTitle>
       </CardHeader>
@@ -83,7 +83,7 @@ export default function DocumentUpload() {
           onClick={handleFileUpload}
         >
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-            <CloudUpload className="text-primary w-6 h-6" />
+            <Upload className="text-primary w-6 h-6" />
           </div>
           <p className="text-sm text-gray-600 mb-2">Upload receipts or invoices</p>
           <p className="text-xs text-gray-400 mb-4">AI will extract and categorize data automatically</p>

@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash, Package, AlertTriangle } from "lucide-react";
+import { Plus, Edit, Trash, Package, AlertTriangle, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,22 +18,25 @@ import { insertProductSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, Category, Supplier, ProductWithDetails } from "@shared/schema";
+import ProductImageUpload from "@/components/products/ProductImageUpload";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Products() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("form");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<ProductWithDetails[]>({
     queryKey: ["/api/products"],
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: suppliers } = useQuery({
+  const { data: suppliers = [] } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
   });
 
@@ -124,6 +127,7 @@ export default function Products() {
       quantity: product.quantity || 0,
       minStock: product.minStock || 0
     });
+    setActiveTab("form");
     setDialogOpen(true);
   };
 
@@ -150,6 +154,11 @@ export default function Products() {
     }
   };
 
+  const handleProductImageUploadSuccess = () => {
+    setDialogOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+  };
+
   return (
     <>
       <Header title="Products" />
@@ -166,13 +175,20 @@ export default function Products() {
             if (!open) {
               setSelectedProduct(null);
               form.reset();
+              setActiveTab("form");
             }
           }}>
             <DialogTrigger asChild>
-              <Button>
+              <div className="flex gap-2">
+                <Button onClick={() => { setActiveTab("image"); setDialogOpen(true); }}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Add from Image
+                </Button>
+                <Button onClick={() => { setActiveTab("form"); setDialogOpen(true); }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Product
               </Button>
+              </div>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -181,6 +197,13 @@ export default function Products() {
                 </DialogTitle>
               </DialogHeader>
               
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="form">Manual Entry</TabsTrigger>
+                  <TabsTrigger value="image">Upload Image</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="form">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -336,6 +359,12 @@ export default function Products() {
                   </div>
                 </form>
               </Form>
+                </TabsContent>
+                
+                <TabsContent value="image">
+                  <ProductImageUpload onSuccess={handleProductImageUploadSuccess} />
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>
@@ -414,10 +443,16 @@ export default function Products() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
                 <p className="text-gray-500 mb-6">Add your first product to get started</p>
-                <Button onClick={() => setDialogOpen(true)}>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => { setActiveTab("image"); setDialogOpen(true); }}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Add from Image
+                  </Button>
+                  <Button onClick={() => { setActiveTab("form"); setDialogOpen(true); }}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add First Product
+                    Add Manually
                 </Button>
+                </div>
               </div>
             )}
           </CardContent>

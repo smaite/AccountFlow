@@ -1,6 +1,7 @@
 import { Search, Bell, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ProfileDropdown from "./profile-dropdown";
 
 interface HeaderProps {
   title: string;
@@ -37,6 +38,9 @@ export default function Header({ title, onUploadClick }: HeaderProps) {
                 Upload Document
               </Button>
             )}
+            
+            {/* Profile Dropdown */}
+            <ProfileDropdown />
           </div>
         </div>
       </div>
