@@ -1,6 +1,5 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// api/gemini.ts
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
