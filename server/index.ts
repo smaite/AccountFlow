@@ -53,10 +53,10 @@ if (!process.env.GEMINI_API_KEY) {
   console.error("Please check your .env file and ensure the API key is correctly set.");
 } else {
   console.log("GEMINI_API_KEY is set correctly:", process.env.GEMINI_API_KEY.substring(0, 5) + '...' + process.env.GEMINI_API_KEY.substring(process.env.GEMINI_API_KEY.length - 4));
-      }
+}
 
-// Start the server
-async function startServer() {
+// Initialize the server
+async function initializeServer() {
   const server = await registerRoutes(app);
 
   // In development, use Vite for serving client files
@@ -67,22 +67,35 @@ async function startServer() {
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || '5700', 10);
-  server.listen(port, '0.0.0.0', () => {
-    log(`Server running on port ${port}`);
-    log(`Local access: http://localhost:${port}`);
-    
-    const localIps = getLocalIpAddresses();
-    if (localIps.length > 0) {
-      log('Available on your network at:');
-      localIps.forEach(ip => {
-        log(`http://${ip}:${port}`);
-  });  
-    }
+  return server;
+}
+
+// Initialize routes for Vercel
+initializeServer().catch(error => {
+  console.error('Failed to initialize server:', error);
+});
+
+// For local development, start the server
+if (process.env.NODE_ENV === "development") {
+  initializeServer().then(server => {
+    const port = parseInt(process.env.PORT || '5700', 10);
+    server.listen(port, '0.0.0.0', () => {
+      log(`Server running on port ${port}`);
+      log(`Local access: http://localhost:${port}`);
+      
+      const localIps = getLocalIpAddresses();
+      if (localIps.length > 0) {
+        log('Available on your network at:');
+        localIps.forEach(ip => {
+          log(`http://${ip}:${port}`);
+        });  
+      }
+    });
+  }).catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
   });
 }
 
-startServer().catch(error => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+// Export for Vercel serverless functions
+export default app;
